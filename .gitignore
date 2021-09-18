@@ -140,3 +140,10 @@ dmypy.json
 cython_debug/
 
 !/config.py
+!/config.py
+.idea/.gitignore
+.idea/DeffichentoBOT.iml
+.idea/inspectionProfiles/
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml

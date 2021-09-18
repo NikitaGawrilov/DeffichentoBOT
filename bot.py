@@ -2,7 +2,9 @@ import discord
 from discord.ext import commands
 from config import settings
 #import blackjack
-from countdown import cd
+#from countdown import cd
+from random import randint
+import asyncio
 
 bot = commands.Bot(command_prefix=settings['prefix'])
 
@@ -27,16 +29,16 @@ async def jojo(ctx):
 
 @bot.command()
 async def speak(ctx):
-    @bot.event
-    async def on_message(msg):
+    await ctx.send("Режим переговоров активирован")
+    while True:
+        msg = await bot.wait_for('message')
         if msg.content.lower() == "где заряжали?":
-            await msg.channel.send('В киоске!')
-            speak()
+            await ctx.send('В киоске!')
         elif msg.content.lower() == "ругайся":
-            await msg.channel.send("Ай фак ё булшит!")
-            speak()
+            await ctx.channel.send("Ай фак ё булшит!")
         elif msg.content.lower() == "/q":
-            pass
+            await ctx.send("Попиздели и хватит!")
+            return
 
 
 @bot.command()
@@ -46,8 +48,30 @@ async def bj(ctx):
 
 
 @bot.command()
-async def countdown(ctx):
-    while
+async def zxc(ctx, arg):
+    i = int(arg)
+    while i > 0:
+        try:
+            msg = await bot.wait_for('message', timeout=0.3)
+        except asyncio.TimeoutError:
+            msg = ''
+        if msg == '':
+            if randint(0, 20) == 20:
+                await ctx.channel.send("Блять, заново...")
+                i = int(arg)
+            else:
+                await ctx.channel.send(i)
+                i = i - 7
+        elif msg.content.lower() == '/q':
+            await ctx.send('Харош')
+            return
+        else:
+            pass
+
+
+
+
+
 
 
 bot.run(settings['token'])
