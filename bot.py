@@ -47,7 +47,7 @@ async def bj(ctx):
 
 @bot.command()
 async def countdown(ctx):
-    while 
+    while
 
 
 bot.run(settings['token'])
