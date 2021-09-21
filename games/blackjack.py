@@ -1,4 +1,4 @@
-from deck_stash import deck_vals, deck
+from games.deck_stash import deck_vals, deck
 import random
 
 q_deck = deck.copy()

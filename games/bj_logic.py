@@ -1,4 +1,4 @@
-from deck_stash import deck_vals, deck
+from games.deck_stash import deck_vals, deck
 import random
 
 q_deck = deck.copy()
@@ -45,8 +45,6 @@ def q():
         pas = False
         global q_deck
         q_deck = deck.copy()
-        #print(q_deck)
-        print(len(q_deck))
         blackjack()
     else:
         print('По русски скажи бля')
