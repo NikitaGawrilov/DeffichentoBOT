@@ -16,7 +16,7 @@ async def hi(ctx):
     await ctx.send("Hi!")
 
 
-@bot.command(pass_context=True) #разрешаем передавать агрументы
+@bot.command()
 async def povtor(ctx, arg):
     await ctx.send(arg)
 
@@ -34,10 +34,6 @@ async def speak(ctx):
         msg = await bot.wait_for('message')
         if msg.content.lower() == "где заряжали?":
             await ctx.send('В киоске!')
-        elif msg.content.lower() == "ругайся":
-            await ctx.channel.send("Ай фак ё булшит!")
-        elif msg.content.lower() == "/q":
-            await ctx.send("Попиздели и хватит!")
             return
 
 
@@ -57,7 +53,7 @@ async def zxc(ctx, arg):
             msg = ''
         if msg == '':
             if randint(0, 20) == 20:
-                await ctx.channel.send("Блять, заново...")
+                await ctx.channel.send("Заново...")
                 i = int(arg)
             else:
                 await ctx.channel.send(i)
@@ -68,10 +64,10 @@ async def zxc(ctx, arg):
         else:
             pass
 
-@bot.command()
-async def test(ctx):
-    r = ["gjgjgjg", "dsksdokfdsof", "fjsdfijsd"]
-    await ctx.send("\n".join(r))
+# @bot.command()
+# async def test(ctx):
+#     r = ["gjgjgjg", "dsksdokfdsof", "fjsdfijsd"]
+#     await ctx.send("\n".join(r))
 
 
 

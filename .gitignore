@@ -148,3 +148,4 @@ cython_debug/
 .idea/modules.xml
 .idea/vcs.xml
 !/dumpster.py
+!/Funcs/ditties.txt

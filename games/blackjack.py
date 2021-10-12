@@ -101,21 +101,6 @@ async def dealer(ctx):
                    f"|{'|'.join(d_hand)}| ({score(d_hand)})")
 
 
-def q():
-    a = str(input('Уходишь?\n'))
-    if a == 'y':
-        quit()
-    elif a == 'n':
-        global pas
-        pas = False
-        global q_deck
-        q_deck = deck.copy()
-        print(len(q_deck))
-        blackjack()
-    else:
-        print('По русски скажи бля')
-        q()
-
 
 def get_p_cards(p_name):
     return f"|{'|'.join(p_hands[p_name])}| ({score(p_hands[p_name])})"
