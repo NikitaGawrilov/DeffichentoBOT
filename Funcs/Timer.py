@@ -15,9 +15,6 @@ class Timer:
     def cancel(self):
         self._task.cancel()
 
-
-
-
 async def timeout_callback(): #сомнительной необходимости вещь:
     await asyncio.sleep(0.1)
     print("timeout")

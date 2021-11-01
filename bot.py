@@ -6,10 +6,13 @@ from random import randint
 import asyncio
 from discord_components import DiscordComponents, Button
 from Funcs.Timer import Timer
+from Funcs import matchamaking
+from Funcs.vars import delay
 
 bot = commands.Bot(command_prefix=settings['prefix'])
 players = []
 test_is_running = False
+game_is_running = False
 
 @bot.command()
 async def hi(ctx):
@@ -39,8 +42,16 @@ async def speak(ctx):
 
 @bot.command()
 async def bj(ctx):
-    await blackjack(bot, ctx)
-
+    global game_is_running
+    game_is_running = not game_is_running
+    await ctx.send(f"-----------------------------------------------------------------------------\n"
+                   f"Господин {ctx.author.name} начинает игру в блэк-джек!\n"
+                   )
+    global players
+    players = await matchamaking.mm(bot, ctx)
+    await asyncio.sleep(delay + 1)
+    await blackjack(bot, ctx, players)
+    game_is_running = not game_is_running
 
 
 @bot.command()

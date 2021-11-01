@@ -5,45 +5,45 @@ from discord.ext import commands
 import asyncio
 from discord_components import DiscordComponents, Button
 from Funcs.Timer import Timer
+from Funcs.vars import delay
 
 q_deck = deck.copy()
 p_hands = {}
 d_hand = []
 ps_passed = []
-delay = 10
 outcome = {}
 
 
-async def mm(bot, ctx):
+async def mm(bot, ctx, players):
     DiscordComponents(bot)
     buttons = [
-        Button(label="Я в деле!", custom_id="btnMe")
+        Button(label="Взять карты", custom_id="btnPick")
     ]
     msg = await ctx.send(
-        "Кто участвует?",
+        "Господа, возьмите свои карты!",
         components=buttons
     )
 
     async def callback():
-        if len(p_hands.keys()) == 0:
-            await msg.edit(content="Никто не пришёл играть...", components=[])
-        else:
-            await msg.edit(content="Время вышло! Игра начата!", components=[])
+        for player in players:
+            if player not in p_hands.keys():
+                await ctx.send(f"Господин {player} не взял свои карты и тем самым отказался от игры...")
 
     timer = Timer(delay, callback)
 
     @bot.event
     async def on_button_click(interaction):
-        if interaction.custom_id == "btnMe":
+        if interaction.custom_id == "btnPick":
             player_n = interaction.author.name
-            if player_n not in p_hands:
-                p_hands[player_n] = pop(2)
-                await interaction.respond(content=f"Вы в игре\n"
-                                                  f"Ваши карты, господин {player_n}:\n"
-                                                  f"{get_p_cards(player_n)}")
-
+            if player_n in players:
+                if player_n not in p_hands:
+                    p_hands[player_n] = pop(2)
+                    await interaction.respond(content=f"Ваши карты, господин {player_n}:\n"
+                                                      f"{get_p_cards(player_n)}")
+                else:
+                    await interaction.respond(content="Вы уже взяли Ваши карты!")
             else:
-                await interaction.respond(content="Вы уже в игре!")
+                await interaction.respond(content="Вы не участвуете в данной партии!")
         else:
             pass
 
@@ -84,9 +84,11 @@ async def hit(bot, ctx, player):
                 await interaction.respond(content=f"Ваши карты, господин {player}:\n"
                                                   f"{get_p_cards(player)}")
             elif interaction.custom_id == "btnPas":
-                timer.cancel()
-                ps_passed.append(player)
                 await msg.edit(content=f"Господин {player} пасовал...", components=[])
+                ps_passed.append(player)
+                timer.cancel()
+                await interaction.respond(content=f"Ваши карты, господин {player}:\n"
+                                                  f"{get_p_cards(player)}")
             else:
                 pass
         else:
@@ -107,7 +109,7 @@ def get_p_cards(p_name):
 
 
 async def compare(bot, ctx):
-    while len(ps_passed) != len(p_hands.keys()):
+    while len(ps_passed) < len(p_hands.keys()):
         for player in p_hands.keys():
             if player not in ps_passed:
                 if score(p_hands[player]) == 21:
@@ -118,6 +120,7 @@ async def compare(bot, ctx):
                     # elif deck_vals[d_hand[0]] == 11:
                     #     pass
                 elif score(p_hands[player]) > 21:
+                    await ctx.send(f"У господина {player} перебор!")
                     ps_passed.append(player)
                     outcome[player] = 0
                 elif score(p_hands[player]) < 21:
@@ -168,17 +171,11 @@ def pop(num=1):
     return pop_hand
 
 
-async def blackjack(bot, ctx):
+async def blackjack(bot, ctx, players):
     global p_hand, d_hand, q_deck
     q_deck = deck.copy()
     shuffle(q_deck)
-
-    await ctx.send(f"-----------------------------------------------------------------------------\n"
-                   f"Господин {ctx.author.name} начинает игру в блэк-джек!\n"
-                   f"Колоды заряжены, карты на столе разложены не в том порядке...\n"
-                )
-
-    await mm(bot, ctx)
+    await mm(bot, ctx, players)
     await asyncio.sleep(delay + 1)
     if len(p_hands.keys()) != 0:
         d_hand = pop(2)
@@ -187,6 +184,9 @@ async def blackjack(bot, ctx):
         await compare(bot, ctx)
         await dealer(ctx)
         await ctx.send(finale())
+        ps_passed.clear()
+        p_hands.clear()
+        d_hand.clear()
         return
     else:
         await ctx.send("-----------------------------------------------------------------------------")
