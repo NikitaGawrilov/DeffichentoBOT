@@ -12,6 +12,7 @@ p_hands = {}
 d_hand = []
 ps_passed = []
 outcome = {}
+kostyl = 1  # Да, именно он!
 
 
 async def mm(bot, ctx, players):
@@ -25,6 +26,9 @@ async def mm(bot, ctx, players):
     )
 
     async def callback():
+        global kostyl
+        kostyl = 1
+        await msg.edit(content="Время вышло!", components=[])
         for player in players:
             if player not in p_hands.keys():
                 await ctx.send(f"Господин {player} не взял свои карты и тем самым отказался от игры...")
@@ -37,9 +41,11 @@ async def mm(bot, ctx, players):
             player_n = interaction.author.name
             if player_n in players:
                 if player_n not in p_hands:
+                    global kostyl
+                    kostyl = 1
                     p_hands[player_n] = pop(2)
                     await interaction.respond(content=f"Ваши карты, господин {player_n}:\n"
-                                                      f"{get_p_cards(player_n)}")
+                                                          f"{get_p_cards(player_n)}")
                 else:
                     await interaction.respond(content="Вы уже взяли Ваши карты!")
             else:
@@ -70,6 +76,7 @@ async def hit(bot, ctx, player):
 
     async def callback():
         await msg.edit(content=f"Господин {player}, время вышло, считаем, что Вы пасовали...", components=[])
+        ps_passed.append(player)
 
     timer = Timer(delay, callback)
 
@@ -77,18 +84,18 @@ async def hit(bot, ctx, player):
     async def on_button_click(interaction):
         player_n = interaction.author.name
         if player_n == player:
+            global kostyl
             if interaction.custom_id == "btnHit":
-                await msg.edit(content=f"Господин {player} взял ещё одну карту...", components=[])
-                p_hands[player_n].extend(pop())
+                p_hands[player_n].extend(pop(1))
+                await msg.edit(content=f"Господин {player_n} взял ещё одну карту...", components=[])
+                await interaction.respond(content=f"Ваши карты, господин {player_n}:\n {get_p_cards(player_n)}")
                 timer.cancel()
-                await interaction.respond(content=f"Ваши карты, господин {player}:\n"
-                                                  f"{get_p_cards(player)}")
             elif interaction.custom_id == "btnPas":
                 await msg.edit(content=f"Господин {player} пасовал...", components=[])
                 ps_passed.append(player)
                 timer.cancel()
                 await interaction.respond(content=f"Ваши карты, господин {player}:\n"
-                                                  f"{get_p_cards(player)}")
+                                                      f"{get_p_cards(player)}")
             else:
                 pass
         else:
@@ -113,8 +120,8 @@ async def compare(bot, ctx):
         for player in p_hands.keys():
             if player not in ps_passed:
                 if score(p_hands[player]) == 21:
-                    ps_passed.append(player)
                     await ctx.send(f"У господина {player} блэк-джек!")
+                    ps_passed.append(player)
                     # if deck_vals[d_hand[0]] == 10: блок для вариантов выбора выигрыша
                     #     pass
                     # elif deck_vals[d_hand[0]] == 11:
@@ -124,7 +131,9 @@ async def compare(bot, ctx):
                     ps_passed.append(player)
                     outcome[player] = 0
                 elif score(p_hands[player]) < 21:
+                    global kostyl
                     await hit(bot, ctx, player)
+                    kostyl = 1
                     await asyncio.sleep(delay+1)
             else:
                 pass
@@ -159,16 +168,29 @@ def finale():
     return "\n".join(result)
 
 def pop(num=1):
-    pop_hand =[]
-    global q_deck
-    if len(q_deck) < num:
-        q_deck = deck.copy()
-        for i in range(num):
-            pop_hand.append(q_deck.pop())
+    global kostyl
+    if kostyl == 1:
+        kostyl += 1
+        pop_hand = []
+        global q_deck
+        if len(q_deck) < num:
+            q_deck = deck.copy()
+            for i in range(num):
+                pop_hand.append(q_deck.pop())
+        else:
+            for i in range(num):
+                pop_hand.append(q_deck.pop())
+        return pop_hand
     else:
-        for i in range(num):
-            pop_hand.append(q_deck.pop())
-    return pop_hand
+        pass
+
+async def reload(ctx):
+    global ps_passed, p_hands, d_hand, q_deck
+    ps_passed.clear()
+    p_hands.clear()
+    d_hand.clear()
+    q_deck.clear()
+    await ctx.send("-----------------------------------------------------------------------------")
 
 
 async def blackjack(bot, ctx, players):
@@ -184,32 +206,10 @@ async def blackjack(bot, ctx, players):
         await compare(bot, ctx)
         await dealer(ctx)
         await ctx.send(finale())
-        ps_passed.clear()
-        p_hands.clear()
-        d_hand.clear()
+        await reload(ctx)
         return
     else:
-        await ctx.send("-----------------------------------------------------------------------------")
+        await reload(ctx)
         return
-    # cards()
-    #
-    # if score(p_hand) == 21 and score(d_hand) == 21:
-    #     print('Зато не проиграл!')
-    #     q()
-    # else:
-    #     while not pas:
-    #         play()
-    #     fin()
-    #     compare()
-    #     if score(p_hand) < 21 and score(d_hand) < 21:
-    #         if score(p_hand) > score(d_hand):
-    #             print('Вы выиграли!')
-    #             q()
-    #         elif score(p_hand) == score(d_hand):
-    #             print('Зато не проиграл!')
-    #             q()
-    #         else:
-    #             print('Вы проиграли...')
-    #             q()
 
 

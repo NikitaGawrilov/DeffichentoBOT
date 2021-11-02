@@ -43,15 +43,19 @@ async def speak(ctx):
 @bot.command()
 async def bj(ctx):
     global game_is_running
-    game_is_running = not game_is_running
-    await ctx.send(f"-----------------------------------------------------------------------------\n"
-                   f"Господин {ctx.author.name} начинает игру в блэк-джек!\n"
-                   )
-    global players
-    players = await matchamaking.mm(bot, ctx)
-    await asyncio.sleep(delay + 1)
-    await blackjack(bot, ctx, players)
-    game_is_running = not game_is_running
+    if not game_is_running:
+        game_is_running = not game_is_running
+        await ctx.send(f"-----------------------------------------------------------------------------\n"
+                       f"Господин {ctx.author.name} начинает игру в блэк-джек!\n"
+                       )
+        global players
+        players = await matchamaking.mm(bot, ctx)
+        await asyncio.sleep(delay + 1)
+        await blackjack(bot, ctx, players)
+        game_is_running = not game_is_running
+        players.clear()
+    else:
+        await ctx.send(f"Дождитесь завершения запущенной игры, господин {ctx.author.name}!")
 
 
 @bot.command()

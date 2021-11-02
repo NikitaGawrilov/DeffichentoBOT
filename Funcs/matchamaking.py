@@ -3,8 +3,10 @@ from discord.ext import commands
 import asyncio
 from discord_components import DiscordComponents, Button
 from Funcs.Timer import Timer
+from Funcs.vars import delay
 
 players = []
+
 
 async def mm(bot, ctx):
     DiscordComponents(bot)
@@ -22,7 +24,7 @@ async def mm(bot, ctx):
         else:
             await msg.edit(content="Время вышло! Игра начата!", components=[])
 
-    timer = Timer(10, callback)
+    timer = Timer(delay, callback)
 
     @bot.event
     async def on_button_click(interaction):
