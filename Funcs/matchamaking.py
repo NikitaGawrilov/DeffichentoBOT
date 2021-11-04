@@ -38,3 +38,13 @@ async def mm(bot, ctx):
         else:
             pass
     return players
+
+
+def get_mem_list(bot):
+    mem_list = []
+    for guild in bot.guilds:
+        for member in guild.members:
+            mem_list.append(member.name)
+    out = list(set(mem_list))
+    out.sort()
+    return out

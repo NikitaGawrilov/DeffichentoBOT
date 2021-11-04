@@ -1,11 +1,10 @@
 from games.deck_stash import deck_vals, deck
 from random import shuffle
-import discord
-from discord.ext import commands
 import asyncio
 from discord_components import DiscordComponents, Button
 from Funcs.Timer import Timer
 from Funcs.vars import delay
+from Funcs.bank import game_totals, change_balance
 
 q_deck = deck.copy()
 p_hands = {}
@@ -122,14 +121,17 @@ async def compare(bot, ctx):
                 if score(p_hands[player]) == 21:
                     await ctx.send(f"У господина {player} блэк-джек!")
                     ps_passed.append(player)
-                    # if deck_vals[d_hand[0]] == 10: блок для вариантов выбора выигрыша
-                    #     pass
-                    # elif deck_vals[d_hand[0]] == 11:
-                    #     pass
+                    if deck_vals[d_hand[0]] == 10:
+                        await ctx.send(f"У диллера также есть вероятность блэк-джека, поэтому выигрыш господина {player} определится в конце партии...")
+                    elif deck_vals[d_hand[0]] == 11:
+                        await bj_outcome_choice(bot, ctx, player)
+                        await asyncio.sleep(delay + 1)
+                    else:
+                        outcome[player] = 1.5
                 elif score(p_hands[player]) > 21:
                     await ctx.send(f"У господина {player} перебор!")
                     ps_passed.append(player)
-                    outcome[player] = 0
+                    outcome[player] = -1
                 elif score(p_hands[player]) < 21:
                     global kostyl
                     await hit(bot, ctx, player)
@@ -139,33 +141,69 @@ async def compare(bot, ctx):
                 pass
     return
 
+
+async def bj_outcome_choice(bot, ctx, player):
+    DiscordComponents(bot)
+    buttons = [
+        Button(label="Забрать выигрыш 1 к 1", custom_id="btnTake"),
+        Button(label="Ждать до конца игры", custom_id="btnWait"),
+    ]
+    msg = await ctx.send(
+        f"Господин {player}, у диллера также может быть блэк-джек.\n"
+        f"Вы можете забрать сейчас выигрыш 1 к 1 или дождаться конца игры и получить выигрыш 3 к 2, "
+        f"однако, если в конце игры у диллера также окажется блэк-джек, вы проиграете!\n"
+        f"Что выбираете?",
+        components=buttons
+    )
+
+    async def callback():
+        await msg.edit(content=f"Господин {player}, время вышло! Судьба вашего выигрыша определится в конце игры...", components=[])
+
+    timer = Timer(delay, callback)
+
+    @bot.event
+    async def on_button_click(interaction):
+        player_n = interaction.author.name
+        if player_n == player:
+            if interaction.custom_id == "btnTake":
+                await ctx.send(f"Господин {player} забирает выигрыш 1 к 1!")
+                outcome[player] = 1
+                timer.cancel()
+            elif interaction.custom_id == "btnWait":
+                await ctx.send(f"Господин {player} предпочёл дождаться конца игры...")
+                timer.cancel()
+            else:
+                pass
+        else:
+            await interaction.respond(content=f"Эта кнопка не для вас, господин {player_n}")
+
+
 def finale():
-    result = []
+    global outcome
     for player in p_hands.keys():
-        p_points = score(p_hands[player])
-        win_str = f"Господин {player} выигрывает!"
-        lose_str = f"Господин {player} проигрывает!"
-        if score(d_hand) < 21:
-            if p_points == 21:
-                result.append(win_str)
-            elif p_points > 21:
-                result.append(lose_str)
-            elif p_points < 21:
-                if p_points > score(d_hand):
-                    result.append(win_str)
-                elif p_points <= score(d_hand):
-                    result.append(lose_str)
-        elif score(d_hand) == 21:
-            if p_points == 21:
-                result.append(win_str)
-            else:
-                result.append(lose_str)
-        elif score(d_hand) > 21:
-            if p_points <= 21:
-                result.append(win_str)
-            else:
-                result.append(lose_str)
-    return "\n".join(result)
+        if player not in outcome.keys():
+            p_points = score(p_hands[player])
+            if score(d_hand) < 21:
+                if p_points == 21:
+                    outcome[player] = 1.5
+                elif p_points > 21:
+                    outcome[player] = -1
+                elif p_points < 21:
+                    if p_points > score(d_hand):
+                        outcome[player] = 1.5
+                    elif p_points <= score(d_hand):
+                        outcome[player] = -1
+            elif score(d_hand) == 21:
+                if p_points == 21:
+                    outcome[player] = 0.5
+                else:
+                    outcome[player] = -1
+            elif score(d_hand) > 21:
+                if p_points <= 21:
+                    outcome[player] = 1.5
+                else:
+                    outcome[player] = -1
+
 
 def pop(num=1):
     global kostyl
@@ -190,10 +228,11 @@ async def reload(ctx):
     p_hands.clear()
     d_hand.clear()
     q_deck.clear()
+    outcome.clear()
     await ctx.send("-----------------------------------------------------------------------------")
 
 
-async def blackjack(bot, ctx, players):
+async def blackjack(bot, ctx, players, bet):
     global p_hand, d_hand, q_deck
     q_deck = deck.copy()
     shuffle(q_deck)
@@ -205,7 +244,9 @@ async def blackjack(bot, ctx, players):
                        f"|{d_hand[0]}|?| ({deck_vals[d_hand[0]]})")
         await compare(bot, ctx)
         await dealer(ctx)
-        await ctx.send(finale())
+        finale()
+        await ctx.send(game_totals(bet, outcome))
+        await change_balance(bet, outcome)
         await reload(ctx)
         return
     else:
