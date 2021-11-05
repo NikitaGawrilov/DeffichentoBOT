@@ -149,3 +149,8 @@ cython_debug/
 .idea/vcs.xml
 !/dumpster.py
 !/Funcs/ditties.txt
+!/ico.ico
+!/run.bat
+!/config.py
+!/bank.json
+!/stuff_to_run/
