@@ -22,7 +22,8 @@ async def mm(bot, ctx):
         if len(players) == 0:
             await msg.edit(content="Никто не пришёл играть...", components=[])
         else:
-            await msg.edit(content="Время вышло! Игра начата!", components=[])
+            await msg.edit(content=f"Время вышло! Игра начата!\n"
+                                   f"Сегодня играют: {','.join(players)}", components=[])
 
     timer = Timer(delay, callback)
 
