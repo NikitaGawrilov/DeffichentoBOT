@@ -23,7 +23,7 @@ async def mm(bot, ctx):
             await msg.edit(content="Никто не пришёл играть...", components=[])
         else:
             await msg.edit(content=f"Время вышло! Игра начата!\n"
-                                   f"Сегодня играют: {','.join(players)}", components=[])
+                                   f"Сегодня играют: {', '.join(players)}", components=[])
 
     timer = Timer(delay, callback)
 

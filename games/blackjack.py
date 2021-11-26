@@ -45,6 +45,7 @@ async def mm(bot, ctx, players):
                     p_hands[player_n] = pop(2)
                     await interaction.respond(content=f"Ваши карты, господин {player_n}:\n"
                                                           f"{get_p_cards(player_n)}")
+
                 else:
                     await interaction.respond(content="Вы уже взяли Ваши карты!")
             else:
@@ -191,8 +192,10 @@ def finale():
                 elif p_points < 21:
                     if p_points > score(d_hand):
                         outcome[player] = 1.5
-                    elif p_points <= score(d_hand):
+                    elif p_points < score(d_hand):
                         outcome[player] = -1
+                    elif p_points == score(d_hand):
+                        outcome[player] = 1
             elif score(d_hand) == 21:
                 if p_points == 21:
                     outcome[player] = 0.5
@@ -232,6 +235,13 @@ async def reload(ctx):
     await ctx.send("-----------------------------------------------------------------------------")
 
 
+def p_hands_output():
+    output = ["__Карты игроков:__"]
+    for player in p_hands:
+        output.append(f"{player}: {get_p_cards(player)}")
+    return "\n".join(output)
+
+
 async def blackjack(bot, ctx, players, bet):
     global p_hand, d_hand, q_deck
     q_deck = deck.copy()
@@ -245,6 +255,7 @@ async def blackjack(bot, ctx, players, bet):
         await compare(bot, ctx)
         await dealer(ctx)
         finale()
+        await ctx.send(p_hands_output())
         await ctx.send(game_totals(bet, outcome))
         await change_balance(bet, outcome)
         await reload(ctx)
