@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from config import settings
 from games.blackjack import blackjack
+from games.andrew import andrew_game
 from random import randint
 import asyncio
 from Funcs.matchamaking import mm, get_mem_list
@@ -64,9 +65,33 @@ async def bj(ctx, bet=100):
                        f"Господин {ctx.author.name} начинает игру в **блэк-джек** со ставкой **{bet}**!\n"
                        )
         global players
-        players = await mm(bot, ctx)
+        players = await mm(bot, ctx, bet)
         await asyncio.sleep(delay + 1)
-        await blackjack(bot, ctx, players, bet)
+        if players:
+            await blackjack(bot, ctx, players, bet)
+        await ctx.send("-----------------------------------------------------------------------------")
+        game_is_running = not game_is_running
+        players.clear()
+    else:
+        await ctx.send(f"Дождитесь завершения запущенной игры, господин {ctx.author.name}!")
+
+
+@bot.command()
+async def drew(ctx, bet=100):
+    global game_is_running
+    if not game_is_running:
+        game_is_running = not game_is_running
+        await ctx.send(f"-----------------------------------------------------------------------------\n"
+                       f"Господин {ctx.author.name} начинает игру в **Андрея** со ставкой **{bet}**!\n"
+                       )
+        global players
+        players = await mm(bot, ctx, bet)
+        await asyncio.sleep(delay + 1)
+        if len(players) >= 2:
+            await andrew_game(bot, ctx, players, bet)
+        else:
+            await ctx.send("Недостаточно игроков!")
+        await ctx.send("-----------------------------------------------------------------------------")
         game_is_running = not game_is_running
         players.clear()
     else:
@@ -113,6 +138,12 @@ async def cash(ctx):
 async def kill(ctx):
     if ctx.author.name == ctx.guild.owner.name:
         await bot.close()
+
+
+@bot.command()
+async def test(ctx):
+    pass
+
 
 """
 @bot.command()

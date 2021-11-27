@@ -4,11 +4,12 @@ import asyncio
 from discord_components import DiscordComponents, Button
 from Funcs.Timer import Timer
 from Funcs.vars import delay
+from Funcs.bank import get_rem_bal, change_balance
 
 players = []
 
 
-async def mm(bot, ctx):
+async def mm(bot, ctx, bet):
     DiscordComponents(bot)
     buttons = [
         Button(label="Я в деле!", custom_id="btnMe")
@@ -31,9 +32,14 @@ async def mm(bot, ctx):
     async def on_button_click(interaction):
         if interaction.custom_id == "btnMe":
             player_n = interaction.author.name
+            p_bal = await get_rem_bal(player_n)
             if player_n not in players:
-                players.append(player_n)
-                await interaction.respond(content=f"Вы в игре!")
+                if bet < p_bal:
+                    players.append(player_n)
+                    await change_balance(bet, outcome={player_n: -1})
+                    await interaction.respond(content=f"Вы в игре!")
+                else:
+                    await interaction.respond(content=f"На вашем счету недостаточно средств для игры!")
             else:
                 await interaction.respond(content="Вы уже в игре!")
         else:

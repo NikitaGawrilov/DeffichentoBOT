@@ -152,5 +152,10 @@ cython_debug/
 !/ico.ico
 !/run.bat
 !/config.py
-!/bank.json
+!/Funcs/bank.json
 !/stuff_to_run/
+!/emojis/
+emojis/
+stuff_to_run/
+!/config.py
+!/config.py

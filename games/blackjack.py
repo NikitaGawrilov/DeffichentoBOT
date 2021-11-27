@@ -132,7 +132,7 @@ async def compare(bot, ctx):
                 elif score(p_hands[player]) > 21:
                     await ctx.send(f"У господина {player} перебор!")
                     ps_passed.append(player)
-                    outcome[player] = -1
+                    outcome[player] = 0
                 elif score(p_hands[player]) < 21:
                     global kostyl
                     await hit(bot, ctx, player)
@@ -188,24 +188,24 @@ def finale():
                 if p_points == 21:
                     outcome[player] = 1.5
                 elif p_points > 21:
-                    outcome[player] = -1
+                    outcome[player] = 0
                 elif p_points < 21:
                     if p_points > score(d_hand):
                         outcome[player] = 1.5
                     elif p_points < score(d_hand):
-                        outcome[player] = -1
+                        outcome[player] = 0
                     elif p_points == score(d_hand):
                         outcome[player] = 1
             elif score(d_hand) == 21:
                 if p_points == 21:
                     outcome[player] = 0.5
                 else:
-                    outcome[player] = -1
+                    outcome[player] = 0
             elif score(d_hand) > 21:
                 if p_points <= 21:
                     outcome[player] = 1.5
                 else:
-                    outcome[player] = -1
+                    outcome[player] = 0
 
 
 def pop(num=1):
@@ -225,14 +225,13 @@ def pop(num=1):
     else:
         pass
 
-async def reload(ctx):
+def reload():
     global ps_passed, p_hands, d_hand, q_deck
     ps_passed.clear()
     p_hands.clear()
     d_hand.clear()
     q_deck.clear()
     outcome.clear()
-    await ctx.send("-----------------------------------------------------------------------------")
 
 
 def p_hands_output():
@@ -258,10 +257,10 @@ async def blackjack(bot, ctx, players, bet):
         await ctx.send(p_hands_output())
         await ctx.send(game_totals(bet, outcome))
         await change_balance(bet, outcome)
-        await reload(ctx)
+        reload()
         return
     else:
-        await reload(ctx)
+        reload()
         return
 
 
